@@ -30,17 +30,16 @@ class Recaptcha extends \Zend_Validate_Abstract
     /** @const string peer key for communication */
     const PEER_KEY = 'www.google.com';
 
-    protected $_messageTemplates = [
+    protected $_messageTemplates = array(
         self::INVALID_CAPTCHA => 'The captcha was invalid',
         self::CAPTCHA_EMPTY   => 'The captcha must be completed'
-    ];
+    );
 
     /**
      * @param $options
      */
     public function __construct($options) {
         $this->_secretKey = $options['secretKey'];
-        $this->_overrideMessagesIfExisting();
     }
 
     /**
@@ -78,35 +77,28 @@ class Recaptcha extends \Zend_Validate_Abstract
      * @link   https://github.com/google/recaptcha
      */
     protected function _verify($value) {
-        $queryString = http_build_query([
+        $queryString = http_build_query(array(
             'secret'   => $this->_secretKey,
             'response' => $value,
             'remoteIp' => $_SERVER['REMOTE_ADDR']
-        ]);
+        ));
 
         /**
          * PHP 5.6.0 changed the way you specify the peer name for SSL context options.
          * Using "CN_name" will still work, but it will raise deprecated errors.
          */
         $peerKey = version_compare(PHP_VERSION, '5.6.0', '<') ? 'CN_name' : 'peer_name';
-        $context = stream_context_create([
-            'http'  => [
+        $context = stream_context_create(array(
+            'http'  => array(
                 'header'      => "Content-type: application/x-www-form-urlencoded\r\n",
                 'method'      => self::POST_METHOD,
                 'content'     => $queryString,
                 'verify_peer' => true,
                 $peerKey      => self::PEER_KEY
-            ]
-        ]);
+            )
+        ));
         $jsonObject = json_decode(file_get_contents(self::SITE_VERIFY_URL, false, $context));
 
         return $jsonObject->success;
-    }
-
-    private function _overrideMessagesIfExisting() {
-        $params = \Zend_Registry::get('recaptcha');
-        if (!empty($params['messageTemplates']) && is_array($params['messageTemplates'])) {
-            $this->_messageTemplates = $params['messageTemplates'];
-        }
     }
 }
