@@ -33,17 +33,4 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
 
         return $view;
     }
-
-    public function _initRecaptcha()
-    {
-        $config = \Zend_Registry::get('application');
-        $params = $config->recaptcha->toArray();
-
-        $params['messageTemplates'] = [
-            \Cgsmith\Validate\Recaptcha::INVALID_CAPTCHA => 'The captcha was invalid', // set custom/translated message
-            \Cgsmith\Validate\Recaptcha::CAPTCHA_EMPTY => 'The captcha must be completed'
-        ];
-
-        \Zend_Registry::set('recaptcha', $params);
-    }
 }
